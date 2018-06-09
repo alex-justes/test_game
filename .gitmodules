@@ -1,0 +1,3 @@
+[submodule "sea-engine"]
+	path = sea-engine
+	url = https://github.com/alex-justes/sea-engine
