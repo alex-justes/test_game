@@ -35,6 +35,8 @@ target_link_libraries(
 target_sources(
         demo_level
         PRIVATE
+        include/Context.h
+        src/Context.cpp
         src/entry_point.cpp
 )
 

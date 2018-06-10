@@ -1,18 +1,21 @@
-#ifndef TEST_GAME_CONTEXT_H
-#define TEST_GAME_CONTEXT_H
+#ifndef EXTENSIONS_SUPPORT_CONTEXT_H
+#define EXTENSIONS_SUPPORT_CONTEXT_H
 
 #include "helpers/BasicContext.h"
 
-namespace extensions::support
+namespace extensions::support::context
 {
-    class Context: public helpers::context::BasicContext
+    class Decal :
+            public helpers::context::RenderableObject,
+            public core::behavior::Updatable
     {
     public:
-        Context(core::EventManager &event_manager, core::ScreenManager &screen_manager);
-        void initialize() override;
-        void evaluate(uint32_t time_elapsed) override;
-        void process_event(const core::Event *event) override;
+        void set_position(const Point &pos);
+        bool update() override;
+    private:
+        bool _changed{true};
     };
+
 }
 
-#endif //TEST_GAME_CONTEXT_H
+#endif //EXTENSIONS_SUPPORT_CONTEXT_H

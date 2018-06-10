@@ -1,23 +1,25 @@
 #include "support/Context.h"
 #include "Log.h"
 
-using namespace extensions::support;
+using namespace extensions::support::context;
 
-Context::Context(core::EventManager &event_manager, core::ScreenManager &screen_manager)
-: helpers::context::BasicContext(event_manager, screen_manager)
-{
 
-}
-void Context::initialize()
+bool Decal::update()
 {
-    subscribe(core::EventType::Keyboard);
-    set_finished(false);
+    if (_changed)
+    {
+        if (drawable() != nullptr)
+        {
+            render_shape() = AABB(drawable()->bounding_box().top_left + position(),
+                                  drawable()->bounding_box().bottom_right + position());
+        }
+        _changed = false;
+        return true;
+    }
+    return false;
 }
-void Context::evaluate(uint32_t time_elapsed)
+void Decal::set_position(const Point &pos)
 {
-    BasicContext::evaluate(time_elapsed);
-}
-void Context::process_event(const core::Event *event)
-{
-    LOG_D("Event!")
+    _changed = true;
+    position() = pos;
 }
