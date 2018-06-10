@@ -38,16 +38,35 @@ void DemoLevel::initialize()
         world_manager().add_object(object);
     };
 
+    auto create_invisible_wall = [this](const Size &size,
+                                        const Point &position)
+    {
+        auto object = object_manager().create<extensions::support::context::InvisibleWall>();
+        object->set_position(position);
+        world_manager().add_object(object);
+    };
+
     for (uint32_t y = 1; y < (_world_size.y / _wall_tile_size.y); ++y)
     {
         create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size, {(uint32_t) 0, y * _wall_tile_size.y});
-        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size, {_world_size.x - _wall_tile_size.x, y * _wall_tile_size.y});
+        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size,
+                    {_world_size.x - _wall_tile_size.x, y * _wall_tile_size.y});
     }
     for (uint32_t x = 0; x < (_world_size.x / _wall_tile_size.x + 1); ++x)
     {
         create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size, {x * _wall_tile_size.x, (uint32_t) 0});
-        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size, {x * _wall_tile_size.x, _world_size.y - _wall_tile_size.y});
+        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size,
+                    {x * _wall_tile_size.x, _world_size.y - _wall_tile_size.y});
     }
+
+    create_invisible_wall({_world_size.x, _wall_tile_size.y},
+                          {0, 0});
+    create_invisible_wall({_world_size.x, _wall_tile_size.y},
+                          {(uint32_t) 0, _world_size.y - _wall_tile_size.y});
+    create_invisible_wall({_wall_tile_size.x, _world_size.y - 2 * _wall_tile_size.y},
+                          {(uint32_t) 0, _wall_tile_size.y});
+    create_invisible_wall({_wall_tile_size.x, _world_size.y - 2 * _wall_tile_size.y},
+                          {_world_size.x - _wall_tile_size.x, _wall_tile_size.y});
 }
 
 void DemoLevel::evaluate(uint32_t time_elapsed)
