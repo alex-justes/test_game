@@ -12,7 +12,6 @@ namespace extensions::support::context
     {
     public:
         void set_position(const Point &pos) override;
-        bool update() override;
     };
 
     // Wall. Just. Wall.
@@ -26,7 +25,6 @@ namespace extensions::support::context
     {
     public:
         void set_position(const Point &position) override;
-        bool update() override;
     };
 
     class MovableObject :
@@ -34,21 +32,46 @@ namespace extensions::support::context
             public virtual helpers::context::RenderableObject
     {
     public:
-        virtual void move(const DirectionVector& vector);
         const Point& get_previous_position() const;
         void set_position(const Point &position) override;
-        bool update() override;
+        bool update(bool force) override;
+        void set_direction(const DirectionVector& vector);
+        void set_direction(float deg);
+        void set_velocity(float velocity);
+        float velocity() const;
+        const DirectionVector& direction() const;
+        virtual bool move(const DirectionVector& vector);
+        virtual bool move();
+    protected:
+        void save_previous_position();
     private:
         Point _previous_pos;
+        DirectionVector _direction_normalized {0, 0};
+        float _velocity {0};
+        DirectionVector _offset {0, 0};
+
     };
 
-    class Projectile :
+    class SelfMovableObject :
             public virtual MovableObject,
             public virtual core::actor::Actor
     {
     public:
-        bool act() override;
+        bool act(uint32_t time_elapsed) override;
+    protected:
+        bool move(const DirectionVector& vector) override;
+        bool move() override;
     };
+
+
+    class Projectile :
+            public virtual SelfMovableObject,
+            public virtual core::actor::Actor
+    {
+    public:
+        bool act(uint32_t time_elapsed) override;
+    };
+
 }
 
 #endif //EXTENSIONS_SUPPORT_CONTEXT_H

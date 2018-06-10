@@ -39,5 +39,7 @@ target_sources(
         include/support/Context.h
         src/Context.cpp
         include/support/Types.h
+        include/support/Utilities.h
+        src/Utilities.cpp
 )
 

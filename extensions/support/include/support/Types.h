@@ -3,7 +3,7 @@
 
 #include "helpers/Containers.hpp"
 
-using DirectionVector = helpers::containers::Vector2D<int32_t>;
+using DirectionVector = helpers::containers::Vector2D<float>;
 using PointI32 = helpers::containers::Point2D<int32_t>;
 
 #endif //EXTENSIONS_SUPPORT_TYPES_H

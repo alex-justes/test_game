@@ -10,8 +10,8 @@ DemoLevel::DemoLevel(core::EventManager &event_manager, core::ScreenManager &scr
 
 }
 
-void DemoLevel::create_tile(const core::drawable::RGBA &fill_color,
-                            const core::drawable::RGBA &border_color,
+void DemoLevel::create_tile(const RGBA &fill_color,
+                            const RGBA &border_color,
                             const Size &size,
                             const Point &position)
 {
@@ -52,14 +52,14 @@ void DemoLevel::initialize()
 
     for (uint32_t y = 1; y < (_world_size.y / _wall_tile_size.y); ++y)
     {
-        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size, {(uint32_t) 0, y * _wall_tile_size.y});
-        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size,
+        create_tile({0, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size, {(uint32_t) 0, y * _wall_tile_size.y});
+        create_tile({0, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size,
                     {_world_size.x - _wall_tile_size.x, y * _wall_tile_size.y});
     }
     for (uint32_t x = 0; x < (_world_size.x / _wall_tile_size.x + 1); ++x)
     {
-        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size, {x * _wall_tile_size.x, (uint32_t) 0});
-        create_tile({0, 255, 0, 0}, {0, 0, 0, 0}, _wall_tile_size,
+        create_tile({0, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size, {x * _wall_tile_size.x, (uint32_t) 0});
+        create_tile({0, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size,
                     {x * _wall_tile_size.x, _world_size.y - _wall_tile_size.y});
     }
 
@@ -75,6 +75,11 @@ void DemoLevel::initialize()
     _random_generator = std::mt19937(_random_device());
 }
 
+int DemoLevel::generate_random_int(int lo, int hi)
+{
+    std::uniform_int_distribution<int> x(lo, hi);
+    return x(_random_generator);
+}
 Point DemoLevel::generate_random_point(const Roi &roi)
 {
     std::uniform_int_distribution<uint32_t> x(roi.top_left.x, roi.bottom_right.x);
@@ -101,14 +106,15 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
         auto size = generate_random_size({15, 40}, {15, 40});
         create_tile({255, 0, 0, 0}, {0, 0, 0, 0}, size, point);
         LOG_D("%d %d", point.x, point.y)*/
-
         auto object = world_manager().create_object<extensions::support::context::Projectile>();
         auto rect = object->set_drawable<core::drawable::DrawableRect>();
         auto size = generate_random_size({15, 40}, {15, 40});
+        object->set_direction(generate_random_int(0, 360));
+        object->set_velocity(50.f);
         object->set_collision_size(size);
         rect->size() = size;
-        rect->fill_color() = {255, 0, 0, 0};
-        rect->border_color() = {0, 0, 0, 0};
+        rect->fill_color() = {255, 0, 0, 128};
+        rect->border_color() = {0, 0, 0, 255};
         object->set_position({_world_size/2});
     }
 
@@ -143,27 +149,3 @@ void DemoLevel::process_event(const core::Event *event)
 }
 
 
-template<class T>
-bool is(helpers::context::Object *object)
-{
-    return (dynamic_cast<T*>(object) != nullptr);
-}
-
-void DemoLevel::process_collisions(helpers::context::BasicContext::Collisions pairs)
-{
-    for (const auto& [id1, id2]: pairs)
-    {
-        auto obj1 = world_manager().get_object(id1);
-        auto obj2 = world_manager().get_object(id2);
-
-        if (is<Projectile>(obj1) && is<Wall>(obj2))
-        {
-            world_manager().remove_object(obj1);
-        }
-        else if (is<Projectile>(obj2) && is<Wall>(obj1))
-        {
-            world_manager().remove_object(obj2);
-        }
-
-    }
-}
