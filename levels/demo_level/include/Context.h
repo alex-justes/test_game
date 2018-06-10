@@ -3,6 +3,7 @@
 
 #include <random>
 #include "helpers/BasicContext.h"
+#include "support/Context.h"
 
 class DemoLevel : public helpers::context::BasicContext
 {
@@ -11,8 +12,10 @@ public:
     void initialize() override;
     void evaluate(uint32_t time_elapsed) override;
     void process_event(const core::Event *event) override;
+    void process_collisions(Collisions pairs) override;
 private:
-
+    using Projectile = extensions::support::context::Projectile;
+    using Wall = extensions::support::context::Wall;
     void create_tile(const core::drawable::RGBA &fill_color,
                      const core::drawable::RGBA &border_color,
                      const Size &size,

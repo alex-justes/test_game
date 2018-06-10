@@ -66,7 +66,7 @@ void MovableObject::move(const DirectionVector &vector)
 {
     PointI32 tmp_pos {position().x, position().y};
     tmp_pos += vector;
-    // TODO: we still can move outside our small world
+    _previous_pos = position();
     set_position({std::max(0, tmp_pos.x), std::max(0, tmp_pos.y)});
 }
 

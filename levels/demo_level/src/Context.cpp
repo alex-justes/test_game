@@ -15,21 +15,20 @@ void DemoLevel::create_tile(const core::drawable::RGBA &fill_color,
                             const Size &size,
                             const Point &position)
 {
-    auto object = object_manager().create<extensions::support::context::Decal>();
+    auto object = world_manager().create_object<extensions::support::context::Decal>();
     auto rect = object->set_drawable<core::drawable::DrawableRect>();
     rect->size() = size;
     rect->fill_color() = fill_color;
     rect->border_color() = border_color;
     object->set_position(position);
-    world_manager().add_object(object);
 }
 
 void DemoLevel::create_invisible_wall(const Size &size,
                                       const Point &position)
 {
-    auto object = object_manager().create<extensions::support::context::InvisibleWall>();
+    auto object = world_manager().create_object<extensions::support::context::InvisibleWall>();
+    object->set_collision_size(size);
     object->set_position(position);
-    world_manager().add_object(object);
 }
 
 void DemoLevel::initialize()
@@ -46,7 +45,7 @@ void DemoLevel::initialize()
     _screen_id = screen_manager().create_screen({{0,             0},
                                                  {screen_size.x, screen_size.y}}, 0);
 
-    auto mini_map = screen_manager().create_screen({{0, 0}, {100, 100}}, 1);
+    auto mini_map = screen_manager().create_screen({{0, 0}, _world_size / 10}, 1);
 
     screen_manager().attach_camera(_camera, _screen_id);
     screen_manager().attach_camera(_camera, mini_map);
@@ -98,10 +97,19 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
     // On next frame it should appear...
     if (_spawn_key_pressed)
     {
-        auto point = generate_random_point(_spawn_region);
+       /* auto point = generate_random_point(_spawn_region);
         auto size = generate_random_size({15, 40}, {15, 40});
         create_tile({255, 0, 0, 0}, {0, 0, 0, 0}, size, point);
-        LOG_D("%d %d", point.x, point.y)
+        LOG_D("%d %d", point.x, point.y)*/
+
+        auto object = world_manager().create_object<extensions::support::context::Projectile>();
+        auto rect = object->set_drawable<core::drawable::DrawableRect>();
+        auto size = generate_random_size({15, 40}, {15, 40});
+        object->set_collision_size(size);
+        rect->size() = size;
+        rect->fill_color() = {255, 0, 0, 0};
+        rect->border_color() = {0, 0, 0, 0};
+        object->set_position({_world_size/2});
     }
 
 
@@ -131,5 +139,31 @@ void DemoLevel::process_event(const core::Event *event)
                     break;
             }
         }
+    }
+}
+
+
+template<class T>
+bool is(helpers::context::Object *object)
+{
+    return (dynamic_cast<T*>(object) != nullptr);
+}
+
+void DemoLevel::process_collisions(helpers::context::BasicContext::Collisions pairs)
+{
+    for (const auto& [id1, id2]: pairs)
+    {
+        auto obj1 = world_manager().get_object(id1);
+        auto obj2 = world_manager().get_object(id2);
+
+        if (is<Projectile>(obj1) && is<Wall>(obj2))
+        {
+            world_manager().remove_object(obj1);
+        }
+        else if (is<Projectile>(obj2) && is<Wall>(obj1))
+        {
+            world_manager().remove_object(obj2);
+        }
+
     }
 }
