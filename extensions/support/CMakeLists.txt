@@ -38,5 +38,6 @@ target_sources(
         PRIVATE
         include/support/Context.h
         src/Context.cpp
+        include/support/Types.h
 )
 

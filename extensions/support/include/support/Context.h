@@ -2,12 +2,13 @@
 #define EXTENSIONS_SUPPORT_CONTEXT_H
 
 #include "helpers/BasicContext.h"
+#include "support/Types.h"
 
 namespace extensions::support::context
 {
     // Non-collidable
     class Decal :
-            public helpers::context::RenderableObject
+            public virtual helpers::context::RenderableObject
     {
     public:
         void set_position(const Point &pos) override;
@@ -21,11 +22,32 @@ namespace extensions::support::context
 
     // Non-renderable wall.
     class InvisibleWall : public Wall,
-                          public helpers::context::CollidableObject
+                          public virtual helpers::context::CollidableObject
     {
-        bool update() override;
     public:
         void set_position(const Point &position) override;
+        bool update() override;
+    };
+
+    class MovableObject :
+            public virtual helpers::context::CollidableObject,
+            public virtual helpers::context::RenderableObject
+    {
+    public:
+        virtual void move(const DirectionVector& vector);
+        const Point& get_previous_position() const;
+        void set_position(const Point &position) override;
+        bool update() override;
+    private:
+        Point _previous_pos;
+    };
+
+    class Projectile :
+            public virtual MovableObject,
+            public virtual core::actor::Actor
+    {
+    public:
+        bool act() override;
     };
 }
 
