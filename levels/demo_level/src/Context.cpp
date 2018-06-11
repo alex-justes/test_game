@@ -18,9 +18,9 @@ void DemoLevel::create_tile(const RGBA &fill_color,
 {
     auto object = world_manager().create_object<extensions::complex::object::Decal>();
     auto rect = object->set_drawable<core::drawable::DrawableRect>();
-    rect->size() = size;
-    rect->fill_color() = fill_color;
-    rect->border_color() = border_color;
+    rect->set_box_size(size);
+    rect->set_fill_color(fill_color);
+    rect->set_border_color(border_color);
     object->set_position(position);
 }
 
@@ -81,6 +81,27 @@ void DemoLevel::initialize()
     create_invisible_wall({_wall_tile_size.x, _world_size.y - 2 * _wall_tile_size.y},
                           {_world_size.x - _wall_tile_size.x, _wall_tile_size.y});
 
+    {
+        auto explosion = world_manager().create_object<extensions::complex::object::RadialParticleGenerator<AutoMovableObject>>();
+/*                    void set_drawable_generator(std::unique_ptr<DrawableGenerator>&& generator);
+            void set_direction_range(int32_t from, int32_t to);
+            void set_speed_range(int32_t from, int32_t to);
+            void set_particle_count_range(int32_t from, int32_t to);
+            void set_life_time_range(int32_t from, int32_t to);
+            void set_size_range(const Size& from, const Size& to);*/
+        auto drawable_generator = new helpers::generator::SimpleDrawableRectGenerator;
+        drawable_generator->set_fill_color({255, 0, 0, 128});
+        drawable_generator->set_border_color({0, 0, 0, 128});
+        explosion->set_drawable_generator(std::unique_ptr<helpers::generator::DrawableGenerator>(drawable_generator));
+        explosion->set_direction_range(1, 360);
+        explosion->set_speed_range(600, 1200);
+        explosion->set_particle_count_range(100, 200);
+        explosion->set_life_time_range(2500, 4000);
+        explosion->set_size_range({10, 20}, {10, 20});
+        explosion->set_position(_world_size/2);
+        _particle_generator = explosion;
+    }
+
 }
 
 
@@ -92,7 +113,8 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
 
     if (_spawn_key_pressed)
     {
-        auto object = world_manager().create_object<extensions::complex::object::WallBouncer>();
+        _particle_generator->generate();
+/*        auto object = world_manager().create_object<extensions::complex::object::WallBouncer>();
         auto rect = object->set_drawable<core::drawable::DrawableRect>();
         auto size = helpers::math::RandomIntGenerator::generate_random_size({15, 40}, {15, 40});
 //        object->set_direction(0);
@@ -101,11 +123,10 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
         object->set_direction(helpers::math::RandomIntGenerator::generate_random_int(0, 360));
         object->set_speed(helpers::math::RandomIntGenerator::generate_random_int(450, 500));
         object->set_collision_size(size);
-        rect->size() = size;
-        rect->fill_color() = {255, 0, 0, 128};
-        rect->border_color() = {0, 0, 0, 255};
         object->set_position(_world_size / 2);
-
+        rect->set_box_size(size);
+        rect->set_fill_color({255, 0, 0, 128});
+        rect->set_border_color({0, 0, 0, 255});*/
     }
 
 

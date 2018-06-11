@@ -2,6 +2,7 @@
 #define DEMO_LEVEL_CONTEXT_H
 
 #include "helpers/BasicContext.hpp"
+#include "support/Objects.hpp"
 
 class DemoLevel : public helpers::context::BasicContext
 {
@@ -14,6 +15,10 @@ private:
 /*    using Projectile = extensions::support::context::Projectile;
     using Movable = extensions::support::context::SelfMovableObject;
     using Wall = extensions::support::context::Wall;*/
+    using ParticleGenerator = extensions::complex::object::ParticleGenerator;
+    using AutoDyingWallBouncer = extensions::complex::object::AutoDyingWallBouncer;
+    using WallBouncer = extensions::complex::object::WallBouncer;
+    using AutoMovableObject = extensions::complex::object::AutoMovableObject;
     void create_tile(const RGBA &fill_color,
                      const RGBA &border_color,
                      const Size &size,
@@ -30,7 +35,7 @@ private:
     Id _screen_id;
     core::Camera *_camera{nullptr};
     bool _spawn_key_pressed{false};
-
+    ParticleGenerator* _particle_generator;
 };
 
 

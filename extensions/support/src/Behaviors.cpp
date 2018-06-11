@@ -72,3 +72,13 @@ void Velocity::set_velocity(const ForceVector &direction, float speed)
     _direction = helpers::math::normalize(direction);
     _speed = speed/1000.f;
 }
+
+int32_t LifeTime::life_time() const
+{
+    return _life_time;
+}
+
+void LifeTime::set_life_time(int32_t time)
+{
+    _life_time = time;
+}

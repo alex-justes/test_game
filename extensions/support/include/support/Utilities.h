@@ -4,6 +4,8 @@
 #include <random>
 #include "Types.h"
 #include "core/Types.h"
+#include "core/BasicBehaviors.hpp"
+#include "core/Drawable.h"
 
 #define EPS 1.e-10f
 
@@ -24,6 +26,25 @@ namespace helpers::math
         RandomIntGenerator() = default;
         static std::random_device _random_device;
         static std::mt19937 _random_generator;
+    };
+}
+
+namespace helpers::generator
+{
+    class DrawableGenerator
+    {
+    public:
+        virtual ~DrawableGenerator() = default;
+        virtual std::unique_ptr<core::drawable::Drawable> generate(const Size& box_size) = 0;
+    };
+
+    class SimpleDrawableRectGenerator :
+            public DrawableGenerator,
+            public virtual core::basic::behavior::FillColor,
+            public virtual core::basic::behavior::BorderColor
+    {
+    public:
+        std::unique_ptr<core::drawable::Drawable> generate(const Size &box_size) override;
     };
 }
 

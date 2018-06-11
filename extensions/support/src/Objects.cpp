@@ -57,3 +57,21 @@ void AutoMovableObject::move(uint32_t time)
         set_position(new_position);
     }
 }
+
+void AutoDyingObject::evaluate(uint32_t time_elapsed)
+{
+    auto remaining_life_time = life_time() - (uint32_t)(time_elapsed);
+    if (remaining_life_time < 0)
+    {
+        set_dead();
+    }
+    else
+    {
+        set_life_time(remaining_life_time);
+    }
+}
+void AutoDyingWallBouncer::evaluate(uint32_t time_elapsed)
+{
+    AutoDyingObject::evaluate(time_elapsed);
+    BouncableObject::evaluate(time_elapsed);
+}

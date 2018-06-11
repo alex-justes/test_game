@@ -3,6 +3,9 @@
 
 using namespace helpers::math;
 
+std::random_device RandomIntGenerator::_random_device = std::random_device();
+std::mt19937 RandomIntGenerator::_random_generator = std::mt19937(RandomIntGenerator::_random_device());
+
 ForceVector helpers::math::normalize(const ForceVector &vector)
 {
     if (vector.length() < EPS)
@@ -47,5 +50,13 @@ Size RandomIntGenerator::generate_random_size(const Size &dim_x, const Size &dim
     return {x(_random_generator), y(_random_generator)};
 }
 
-std::random_device RandomIntGenerator::_random_device = std::random_device();
-std::mt19937 RandomIntGenerator::_random_generator = std::mt19937(RandomIntGenerator::_random_device());
+
+std::unique_ptr<core::drawable::Drawable>
+helpers::generator::SimpleDrawableRectGenerator::generate(const Size &box_size)
+{
+    auto rect = new core::drawable::DrawableRect();
+    rect->set_box_size(box_size);
+    rect->set_fill_color(fill_color());
+    rect->set_border_color(border_color());
+    return std::unique_ptr<core::drawable::Drawable>(rect);
+}

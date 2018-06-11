@@ -2,6 +2,7 @@
 #define EXTENSIONS_SUPPORT_OBJECTS_H
 
 #include "core/BasicObjects.h"
+#include "helpers/BasicContext.hpp"
 #include "support/Behaviors.h"
 #include "support/Actors.h"
 #include "Log.h"
@@ -53,6 +54,15 @@ namespace extensions
             ForceVector _offset{0, 0};
         };
 
+        class AutoDyingObject :
+                public virtual core::basic::object::Object,
+                public virtual extensions::basic::behavior::LifeTime,
+                public core::basic::actor::Evaluate
+        {
+        public:
+            void evaluate(uint32_t time_elapsed) override;
+        };
+
         // TODO: type traits
         template<class T>
         class BouncableObject :
@@ -72,10 +82,48 @@ namespace extensions
 
         using WallBouncer = BouncableObject<Wall>;
 
+        class AutoDyingWallBouncer :
+                public virtual WallBouncer,
+                public virtual AutoDyingObject
+        {
+        public:
+            void evaluate(uint32_t time_elapsed) override;
+        };
+
         // TODO: type traits
-        template<class T>
-                class ParticleGenerator
-                {};
+        // T should be AutoMovable
+
+        class ParticleGenerator
+        {
+        public:
+            virtual void generate() = 0;
+        };
+
+        template<class Particle>
+        class RadialParticleGenerator :
+                public ParticleGenerator,
+                public virtual core::basic::object::Object,
+                public virtual core::basic::behavior::Position
+        {
+        public:
+            using DrawableGenerator = helpers::generator::DrawableGenerator;
+            RadialParticleGenerator();
+            constexpr static bool check_traits();
+            void set_drawable_generator(std::unique_ptr<DrawableGenerator>&& generator);
+            void set_direction_range(int32_t from, int32_t to);
+            void set_speed_range(int32_t from, int32_t to);
+            void set_particle_count_range(int32_t from, int32_t to);
+            void set_life_time_range(int32_t from, int32_t to);
+            void set_size_range(const Size& from, const Size& to);
+            void generate() override;
+        private:
+            PointI32 _direction{0, 0};
+            PointI32 _speed{0, 0};
+            PointI32 _particles{0, 0};
+            PointI32 _life_time{0 ,0};
+            Size _size_lo{0, 0}, _size_hi{0, 0};
+            std::unique_ptr<DrawableGenerator> _drawable_generator;
+        };
 
 
         // =============================================
@@ -160,6 +208,10 @@ namespace extensions
         template<class T>
         void BouncableObject<T>::evaluate(uint32_t time_elapsed)
         {
+            if (dead())
+            {
+                return;
+            }
             bool collided_with_T = false;
             if (!collisions().empty())
             {
@@ -216,7 +268,7 @@ namespace extensions
             }
             if (!dead())
             {
-                move(time_elapsed);
+                AutoMovableObject::evaluate(time_elapsed);
             }
         }
         template<class T>
@@ -237,6 +289,83 @@ namespace extensions
             }
             return false;
         }
+
+        template<class Particle>
+        constexpr bool RadialParticleGenerator<Particle>::check_traits()
+        {
+            return true;
+            //return std::is_base_of_v<AutoDyingObject, Particle> && std::is_base_of_v<AutoMovableObject, Particle>;
+        }
+
+        template<class Particle>
+        RadialParticleGenerator<Particle>::RadialParticleGenerator()
+        {
+            static_assert(check_traits());
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_drawable_generator(
+                std::unique_ptr<RadialParticleGenerator::DrawableGenerator> &&generator)
+        {
+            _drawable_generator = std::move(generator);
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_direction_range(int32_t from, int32_t to)
+        {
+            _direction = {from, to};
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_speed_range(int32_t from, int32_t to)
+        {
+            _speed = {from, to};
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_particle_count_range(int32_t from, int32_t to)
+        {
+            _particles = {from, to};
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_life_time_range(int32_t from, int32_t to)
+        {
+            _life_time = {from, to};
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_size_range(const Size &from, const Size &to)
+        {
+            _size_lo = from;
+            _size_hi = to;
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::generate()
+        {
+            if (!_drawable_generator)
+            {
+                LOG_E("No drawable generator")
+            }
+            auto amount = helpers::math::RandomIntGenerator::generate_random_int(_particles.x, _particles.y);
+            for (int i = 0; i < amount; ++i)
+            {
+                auto object = world_manager()->create_object<Particle>();
+                auto size = helpers::math::RandomIntGenerator::generate_random_size(_size_lo, _size_hi);
+                auto drawable = _drawable_generator->generate(size);
+                object->set_drawable(std::move(drawable));
+                //object->set_life_time(helpers::math::RandomIntGenerator::generate_random_int(_life_time.x, _life_time.y));
+                object->set_position(position());
+                if constexpr (std::is_base_of_v<core::basic::object::CollidableObject, Particle>)
+                {
+                    object->set_collision_size(size);
+                }
+                object->set_direction(helpers::math::RandomIntGenerator::generate_random_int(_direction.x, _direction.y));
+                object->set_speed(helpers::math::RandomIntGenerator::generate_random_int(_speed.x, _speed.y));
+            }
+        }
+
     }
 }
 
