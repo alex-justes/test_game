@@ -41,32 +41,41 @@ namespace extensions
         class AutoMovableObject :
                 public virtual core::basic::object::UpdatableObject,
                 public virtual extensions::basic::object::RenderableObjectExt,
-                public virtual extensions::basic::object::CollidableObjectExt,
                 public virtual extensions::basic::behavior::Velocity,
                 public core::basic::actor::Evaluate,
                 public extensions::basic::actor::Move
         {
         public:
-            void initialize() override;
             void evaluate(uint32_t time_elapsed) override;
             bool update(bool force) override;
             void move(uint32_t time) override;
         private:
-            ForceVector _offset {0, 0};
+            ForceVector _offset{0, 0};
         };
 
+        // TODO: type traits
         template<class T>
         class BouncableObject :
                 public virtual AutoMovableObject,
+                public virtual extensions::basic::object::CollidableObjectExt,
                 public virtual extensions::complex::behavior::GoodPosition
         {
         public:
+            void initialize() override;
             void evaluate(uint32_t time_elapsed) override;
+        protected:
+        public:
+            bool update(bool force) override;
         protected:
             CollidedSides find_collided_sides(const core::basic::object::CollidableObject *object);
         };
 
         using WallBouncer = BouncableObject<Wall>;
+
+        // TODO: type traits
+        template<class T>
+                class ParticleGenerator
+                {};
 
 
         // =============================================
@@ -209,6 +218,24 @@ namespace extensions
             {
                 move(time_elapsed);
             }
+        }
+        template<class T>
+        void BouncableObject<T>::initialize()
+        {
+            AutoMovableObject::initialize();
+            CollidableObjectExt::initialize();
+        }
+        template<class T>
+        bool BouncableObject<T>::update(bool force)
+        {
+            if (force || changed())
+            {
+                AutoMovableObject::update(force);
+                set_collision_shape({position(), position() + collision_size()});
+                set_changed(false);
+                return true;
+            }
+            return false;
         }
     }
 }

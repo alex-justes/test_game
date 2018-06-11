@@ -16,11 +16,6 @@ void RenderableObjectExt::initialize()
     }
 }
 
-void AutoMovableObject::initialize()
-{
-    CollidableObjectExt::initialize();
-    RenderableObjectExt::initialize();
-}
 
 void AutoMovableObject::evaluate(uint32_t time_elapsed)
 {
@@ -31,7 +26,6 @@ bool AutoMovableObject::update(bool force)
 {
     if (force || changed())
     {
-        set_collision_shape({position(), position() + collision_size()});
         if (drawable() != nullptr)
         {
             set_render_shape({position(), position() + drawable()->bounding_box().bottom_right});
