@@ -41,5 +41,6 @@ target_sources(
         include/support/Types.h
         include/support/Utilities.h
         src/Utilities.cpp
+        include/support/Behaviors.h
 )
 

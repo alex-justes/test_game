@@ -26,7 +26,7 @@ void DemoLevel::create_tile(const RGBA &fill_color,
 void DemoLevel::create_invisible_wall(const Size &size,
                                       const Point &position)
 {
-    auto object = world_manager().create_object<extensions::support::context::InvisibleWall>();
+    auto object = world_manager().create_object<extensions::support::context::Wall>();
     object->set_collision_size(size);
     object->set_position(position);
 }
@@ -62,6 +62,14 @@ void DemoLevel::initialize()
         create_tile({0, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size,
                     {x * _wall_tile_size.x, _world_size.y - _wall_tile_size.y});
     }
+
+    Point p1 = {_world_size.x / 2 - _wall_tile_size.x / 2, 4 * _world_size.y / 5 };
+    Point p2 = {_world_size.x / 2 - 2*_wall_tile_size.x, 1 * _world_size.y / 3 };
+    create_tile({255, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size, p1);
+    create_tile({255, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size, p2);
+
+    create_invisible_wall(_wall_tile_size, p1);
+    create_invisible_wall(_wall_tile_size, p2);
 
     create_invisible_wall({_world_size.x, _wall_tile_size.y},
                           {0, 0});
@@ -106,11 +114,19 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
         auto size = generate_random_size({15, 40}, {15, 40});
         create_tile({255, 0, 0, 0}, {0, 0, 0, 0}, size, point);
         LOG_D("%d %d", point.x, point.y)*/
-        auto object = world_manager().create_object<extensions::support::context::Projectile>();
+       static bool sw = false;
+        auto object = world_manager().create_object<extensions::support::context::WallBouncer>();
         auto rect = object->set_drawable<core::drawable::DrawableRect>();
         auto size = generate_random_size({15, 40}, {15, 40});
         object->set_direction(generate_random_int(0, 360));
-        object->set_velocity(50.f);
+//        object->set_direction(sw ? 90 : 270);
+        static int dir = 0;
+        //object->set_direction(90);
+    //    dir += 7;
+      //  sw = !sw;
+        //size = {80, 20};
+        //object->set_velocity(800);
+        object->set_velocity(generate_random_int(450, 500));
         object->set_collision_size(size);
         rect->size() = size;
         rect->fill_color() = {255, 0, 0, 128};
