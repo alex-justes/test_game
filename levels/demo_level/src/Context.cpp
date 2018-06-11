@@ -1,8 +1,8 @@
 #include "core/Context.h"
-#include "support/Context.h"
 #include "Context.h"
 #include "Log.h"
-#include "support/Objects.h"
+#include "support/Objects.hpp"
+#include "support/Utilities.h"
 
 DemoLevel::DemoLevel(core::EventManager &event_manager, core::ScreenManager &screen_manager)
         :
@@ -41,7 +41,7 @@ void DemoLevel::initialize()
 
     world_manager().set_world_size(screen_size);
     _world_size = world_manager().world_size();
-    _spawn_region = {_wall_tile_size * 2, _world_size - _wall_tile_size * 3 };
+    _spawn_region = {_wall_tile_size * 2, _world_size - _wall_tile_size * 3};
     _camera = world_manager().create_camera({0, 0}, screen_size);
     _screen_id = screen_manager().create_screen({{0,             0},
                                                  {screen_size.x, screen_size.y}}, 0);
@@ -64,8 +64,8 @@ void DemoLevel::initialize()
                     {x * _wall_tile_size.x, _world_size.y - _wall_tile_size.y});
     }
 
-    Point p1 = {_world_size.x / 2 - _wall_tile_size.x / 2, 4 * _world_size.y / 5 };
-    Point p2 = {_world_size.x / 2 - 2*_wall_tile_size.x, 1 * _world_size.y / 3 };
+    Point p1 = {_world_size.x / 2 - _wall_tile_size.x / 2, 4 * _world_size.y / 5};
+    Point p2 = {_world_size.x / 2 - 2 * _wall_tile_size.x, 1 * _world_size.y / 3};
     create_tile({255, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size, p1);
     create_tile({255, 255, 0, 255}, {0, 0, 0, 255}, _wall_tile_size, p2);
 
@@ -81,32 +81,33 @@ void DemoLevel::initialize()
     create_invisible_wall({_wall_tile_size.x, _world_size.y - 2 * _wall_tile_size.y},
                           {_world_size.x - _wall_tile_size.x, _wall_tile_size.y});
 
-    _random_generator = std::mt19937(_random_device());
 }
 
-int DemoLevel::generate_random_int(int lo, int hi)
-{
-    std::uniform_int_distribution<int> x(lo, hi);
-    return x(_random_generator);
-}
-Point DemoLevel::generate_random_point(const Roi &roi)
-{
-    std::uniform_int_distribution<uint32_t> x(roi.top_left.x, roi.bottom_right.x);
-    std::uniform_int_distribution<uint32_t> y(roi.top_left.y, roi.bottom_right.y);
-    return {x(_random_generator), y(_random_generator)};
-}
 
-Size DemoLevel::generate_random_size(const Size &dim_x, const Size &dim_y)
-{
-    std::uniform_int_distribution<uint32_t> x(dim_x.x, dim_x.y);
-    std::uniform_int_distribution<uint32_t> y(dim_y.x, dim_y.y);
-    return {x(_random_generator), y(_random_generator)};
-}
 
 void DemoLevel::evaluate(uint32_t time_elapsed)
 {
     _spawn_key_pressed = false;
     BasicContext::evaluate(time_elapsed);
+
+    if (_spawn_key_pressed)
+    {
+        auto object = world_manager().create_object<extensions::complex::object::WallBouncer>();
+        auto rect = object->set_drawable<core::drawable::DrawableRect>();
+        auto size = helpers::math::RandomIntGenerator::generate_random_size({15, 40}, {15, 40});
+//        object->set_direction(0);
+//        size = {40, 40};
+//        object->set_speed(500);
+        object->set_direction(helpers::math::RandomIntGenerator::generate_random_int(0, 360));
+        object->set_speed(helpers::math::RandomIntGenerator::generate_random_int(450, 500));
+        object->set_collision_size(size);
+        rect->size() = size;
+        rect->fill_color() = {255, 0, 0, 128};
+        rect->border_color() = {0, 0, 0, 255};
+        object->set_position(_world_size / 2);
+
+    }
+
 
 /*    // On next frame it should appear...
     if (_spawn_key_pressed)
@@ -151,7 +152,7 @@ void DemoLevel::process_event(const core::Event *event)
         if (keyboard_event->state() == core::KeyboardEvent::State::PRESSED)
         {
             //LOG_D("key pressed: %d", keyboard_event->sym())
-            switch(keyboard_event->sym())
+            switch (keyboard_event->sym())
             {
                 case SDLK_SPACE:
                     _spawn_key_pressed = true;

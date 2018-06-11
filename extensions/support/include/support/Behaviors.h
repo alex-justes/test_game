@@ -10,11 +10,19 @@ namespace extensions::basic::behavior
             public virtual core::basic::behavior::IBehavior
     {
     public:
-        const ForceVector& velocity() const;
+        ForceVector velocity() const;
+        const ForceVector& direction() const;
+        float direction_angle() const;
+        float speed() const;
+        void set_direction(const ForceVector& direction);
+        void set_direction(float direction);
+        void set_speed(float speed);
         void set_velocity(const ForceVector& velocity);
-        void set_velocity(float direction, float magnitude);
+        void set_velocity(float direction, float speed);
+        void set_velocity(const ForceVector& direction, float speed);
     private:
-        ForceVector _velocity;
+        ForceVector _direction;
+        float _speed;
     };
 }
 
