@@ -1,10 +1,10 @@
 #ifndef EXTENSIONS_SUPPORT_CONTEXT_H
 #define EXTENSIONS_SUPPORT_CONTEXT_H
 
-#include "helpers/BasicContext.h"
+/*#include "helpers/BasicContext.hpp"
 #include "support/Types.h"
 
-namespace extensions::support::context
+namespace extensions::context
 {
     // Non-collidable
     class Decal :
@@ -27,24 +27,19 @@ namespace extensions::support::context
             public virtual core::behavior::Position
     {
     public:
-        const Point &previous_position() const;
         void set_position(const Point &position) override;
-        void set_direction(const DirectionVector &vector);
+        void set_direction(const ForceVector &vector);
         void set_direction(float deg);
         void set_velocity(float velocity);
         float velocity() const;
-        const DirectionVector &direction() const;
-        bool previous_position_known() const;
-        virtual bool move(const DirectionVector &vector);
+        const ForceVector &direction() const;
+        virtual bool move(const ForceVector &vector);
         virtual bool move();
     protected:
-        void save_previous_position();
     private:
-        Point _previous_pos;
-        bool _previous_pos_known{false};
-        DirectionVector _direction_normalized{0, 0};
+        ForceVector _direction_normalized{0, 0};
         float _velocity{0};
-        DirectionVector _offset{0, 0};
+        ForceVector _offset{0, 0};
 
     };
 
@@ -55,7 +50,7 @@ namespace extensions::support::context
     public:
         bool act(uint32_t time_elapsed) override;
     protected:
-        bool move(const DirectionVector &vector) override;
+        bool move(const ForceVector &vector) override;
         bool move() override;
     };
 
@@ -77,6 +72,6 @@ namespace extensions::support::context
         bool act(uint32_t time_elapsed) override;
     };
 
-}
+}*/
 
 #endif //EXTENSIONS_SUPPORT_CONTEXT_H

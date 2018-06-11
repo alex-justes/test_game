@@ -1,7 +1,7 @@
 #include "support/Utilities.h"
 #include "Log.h"
 
-DirectionVector helpers::math::normalize(const DirectionVector &vector)
+ForceVector helpers::math::normalize(const ForceVector &vector)
 {
     if (vector.length() < 0.00000001f)
     {

@@ -1,3 +1,4 @@
+/*
 #include "support/Context.h"
 #include "Log.h"
 #include "support/Utilities.h"
@@ -22,7 +23,7 @@ void MovableObject::set_position(const Point &position)
     Position::set_position(position);
 }
 
-void MovableObject::set_direction(const DirectionVector &vector)
+void MovableObject::set_direction(const ForceVector &vector)
 {
     _direction_normalized = helpers::math::normalize(vector);
 }
@@ -36,7 +37,7 @@ bool MovableObject::move()
     return false;
 }
 
-bool MovableObject::move(const DirectionVector &vector)
+bool MovableObject::move(const ForceVector &vector)
 {
     _offset += vector;
     auto dx = (int32_t) (std::round(_offset.x));
@@ -89,7 +90,7 @@ float MovableObject::velocity() const
     return _velocity;
 }
 
-const DirectionVector &MovableObject::direction() const
+const ForceVector &MovableObject::direction() const
 {
     return _direction_normalized;
 }
@@ -99,7 +100,7 @@ bool MovableObject::previous_position_known() const
     return _previous_pos_known;
 }
 
-bool SelfMovableObject::move(const DirectionVector &vector)
+bool SelfMovableObject::move(const ForceVector &vector)
 {
     return MovableObject::move(vector);
 }
@@ -173,7 +174,7 @@ find_collided_sides(const extensions::support::context::MovableObject *who, cons
 
     auto sides = CollidedSides{};
 
-    DirectionVector offset = position - previous_position;
+    ForceVector offset = position - previous_position;
     float collision_offset = 0.5f;
     float top_y = 0;
     float bottom_y = 0;
@@ -312,4 +313,5 @@ bool WallBouncer::act(uint32_t time_elapsed)
     }
     return status && SelfMovableObject::act(time_elapsed);
 }
+*/
 

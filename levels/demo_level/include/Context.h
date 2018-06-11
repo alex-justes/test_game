@@ -2,7 +2,7 @@
 #define DEMO_LEVEL_CONTEXT_H
 
 #include <random>
-#include "helpers/BasicContext.h"
+#include "helpers/BasicContext.hpp"
 #include "support/Context.h"
 
 class DemoLevel : public helpers::context::BasicContext
@@ -13,9 +13,9 @@ public:
     void evaluate(uint32_t time_elapsed) override;
     void process_event(const core::Event *event) override;
 private:
-    using Projectile = extensions::support::context::Projectile;
+/*    using Projectile = extensions::support::context::Projectile;
     using Movable = extensions::support::context::SelfMovableObject;
-    using Wall = extensions::support::context::Wall;
+    using Wall = extensions::support::context::Wall;*/
     void create_tile(const RGBA &fill_color,
                      const RGBA &border_color,
                      const Size &size,

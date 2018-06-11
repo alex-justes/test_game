@@ -5,7 +5,7 @@
 
 namespace helpers::math
 {
-    DirectionVector normalize(const DirectionVector &vector);
+    ForceVector normalize(const ForceVector &vector);
     float deg2rad(float deg);
     bool intersects_1d(float n_left, float n_right, float m_left, float m_right);
 

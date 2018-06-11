@@ -2,6 +2,7 @@
 #include "support/Context.h"
 #include "Context.h"
 #include "Log.h"
+#include "support/Objects.h"
 
 DemoLevel::DemoLevel(core::EventManager &event_manager, core::ScreenManager &screen_manager)
         :
@@ -15,7 +16,7 @@ void DemoLevel::create_tile(const RGBA &fill_color,
                             const Size &size,
                             const Point &position)
 {
-    auto object = world_manager().create_object<extensions::support::context::Decal>();
+    auto object = world_manager().create_object<extensions::complex::object::Decal>();
     auto rect = object->set_drawable<core::drawable::DrawableRect>();
     rect->size() = size;
     rect->fill_color() = fill_color;
@@ -26,7 +27,7 @@ void DemoLevel::create_tile(const RGBA &fill_color,
 void DemoLevel::create_invisible_wall(const Size &size,
                                       const Point &position)
 {
-    auto object = world_manager().create_object<extensions::support::context::Wall>();
+    auto object = world_manager().create_object<extensions::complex::object::Wall>();
     object->set_collision_size(size);
     object->set_position(position);
 }
@@ -107,13 +108,13 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
     _spawn_key_pressed = false;
     BasicContext::evaluate(time_elapsed);
 
-    // On next frame it should appear...
+/*    // On next frame it should appear...
     if (_spawn_key_pressed)
     {
-       /* auto point = generate_random_point(_spawn_region);
+       *//* auto point = generate_random_point(_spawn_region);
         auto size = generate_random_size({15, 40}, {15, 40});
         create_tile({255, 0, 0, 0}, {0, 0, 0, 0}, size, point);
-        LOG_D("%d %d", point.x, point.y)*/
+        LOG_D("%d %d", point.x, point.y)*//*
        static bool sw = false;
         auto object = world_manager().create_object<extensions::support::context::WallBouncer>();
         auto rect = object->set_drawable<core::drawable::DrawableRect>();
@@ -132,7 +133,7 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
         rect->fill_color() = {255, 0, 0, 128};
         rect->border_color() = {0, 0, 0, 255};
         object->set_position({_world_size/2});
-    }
+    }*/
 
 
     /*_total_time += time_elapsed;
