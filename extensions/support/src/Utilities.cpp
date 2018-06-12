@@ -22,7 +22,7 @@ float helpers::math::deg2rad(float deg)
 
 float helpers::math::rad2deg(float rad)
 {
-    return (float)(rad * 180.f / M_1_PI);
+    return (float)(rad * 180.f / M_PI);
 }
 
 // TODO: make it more explicit

@@ -32,10 +32,6 @@ const ForceVector &Velocity::direction() const
 float Velocity::direction_angle() const
 {
     auto angle = std::atan2(_direction.y, _direction.x);
-    if (angle < 0)
-    {
-        angle = (float)(M_PI - angle);
-    }
     return helpers::math::rad2deg(angle);
 }
 float Velocity::speed() const

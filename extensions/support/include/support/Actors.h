@@ -11,6 +11,7 @@ namespace extensions::basic::actor
     public:
         virtual void move(uint32_t time) = 0;
     };
+
 }
 
 #endif //EXTENSIONS_SUPPORT_ACTORS_H

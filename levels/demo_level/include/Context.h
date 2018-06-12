@@ -3,6 +3,27 @@
 
 #include "helpers/BasicContext.hpp"
 #include "support/Objects.hpp"
+#include <atomic>
+
+using namespace extensions::complex::object;
+using namespace extensions::basic::object;
+
+class DemoVillain :
+        public virtual Villain,
+        public virtual AutoDyingWallBouncer,
+        public virtual RadialParticleGenerator<Exhaust>
+{
+public:
+    void initialize() override;
+    void die() override;
+    void evaluate(uint32_t time_elapsed) override;
+
+    static int amount();
+    static void clear_amount();
+private:
+    static std::atomic_int _amount;
+    bool _killed_by_projectile {false};
+};
 
 class DemoLevel : public helpers::context::BasicContext
 {
@@ -12,13 +33,6 @@ public:
     void evaluate(uint32_t time_elapsed) override;
     void process_event(const core::Event *event) override;
 private:
-/*    using Projectile = extensions::support::context::Projectile;
-    using Movable = extensions::support::context::SelfMovableObject;
-    using Wall = extensions::support::context::Wall;*/
-    using ParticleGenerator = extensions::complex::object::ParticleGenerator;
-    using AutoDyingWallBouncer = extensions::complex::object::AutoDyingWallBouncer;
-    using WallBouncer = extensions::complex::object::WallBouncer;
-    using AutoMovableObject = extensions::complex::object::AutoMovableObject;
     void create_tile(const RGBA &fill_color,
                      const RGBA &border_color,
                      const Size &size,
@@ -30,12 +44,14 @@ private:
 
     const Size _wall_tile_size{40, 40};
     Size _world_size;
-    Roi _spawn_region;
-    uint32_t _total_time{0};
     Id _screen_id;
     core::Camera *_camera{nullptr};
-    bool _spawn_key_pressed{false};
-    ParticleGenerator* _particle_generator;
+
+    ParticleGenerator* _villain_spawner;
+    std::array<Point, 4> _spawn_positions;
+    int32_t _time_to_spawn;
+    int32_t _time_to_shoot;
+    bool _spawn_key_pressed {false};
 };
 
 

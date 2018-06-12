@@ -37,6 +37,12 @@ namespace extensions
         // Wall. Just. Invisible. Wall.
         class Wall : public virtual extensions::basic::object::CollidableObjectExt
         {
+        public:
+            Wall();
+        };
+
+        class Villain
+        {
         };
 
         class AutoMovableObject :
@@ -56,18 +62,24 @@ namespace extensions
 
         class Projectile :
                 public virtual AutoMovableObject,
-                public virtual core::basic::object::CollidableObject
+                public virtual extensions::basic::object::CollidableObjectExt
         {
-
+        public:
+            void initialize() override;
+            void evaluate(uint32_t time_elapsed) override;
+            bool update(bool force) override;
         };
+
 
         class AutoDyingObject :
                 public virtual core::basic::object::Object,
                 public virtual extensions::basic::behavior::LifeTime,
-                public virtual core::basic::actor::Evaluate
+                public virtual core::basic::actor::Evaluate,
+                public virtual core::basic::actor::Die
         {
         public:
             void evaluate(uint32_t time_elapsed) override;
+            void die() override;
         };
 
         // TODO: type traits
@@ -98,18 +110,20 @@ namespace extensions
             void evaluate(uint32_t time_elapsed) override;
         };
 
-        class ParticleGenerator
+        class ParticleGenerator :
+                public virtual core::basic::object::Object,
+                public virtual core::basic::behavior::Position
         {
         public:
-            virtual void generate() = 0;
-            virtual void generate(const Point &position) = 0;
+            virtual uint32_t generate() = 0;
+            virtual uint32_t generate(const Point &position) = 0;
+            virtual void set_generator_direction(float angle) = 0;
+            virtual void set_generator_direction(const ForceVector &direction) = 0;
         };
 
         template<class Particle>
         class RadialParticleGenerator :
-                public ParticleGenerator,
-                public virtual core::basic::object::Object,
-                public virtual core::basic::behavior::Position
+                public virtual ParticleGenerator
         {
         public:
             using DrawableGenerator = helpers::generator::DrawableGenerator;
@@ -117,15 +131,15 @@ namespace extensions
             constexpr static bool check_traits();
             void set_drawable_generator(std::unique_ptr<DrawableGenerator> &&generator);
             void set_direction_range(float angle);
-            void set_speed_range(int32_t from, int32_t to);
+            void set_speed_range(float from, float to);
             void set_particle_count_range(int32_t from, int32_t to);
             void set_life_time_range(int32_t from, int32_t to);
             void set_size_range(const Size &width, const Size &height);
-            void set_direction(float angle);
-            void set_direction(const ForceVector &direction);
+            void set_generator_direction(float angle) override;
+            void set_generator_direction(const ForceVector &direction) override;
 
-            void generate(const Point &position) override;
-            void generate() override;
+            uint32_t generate(const Point &position) override;
+            uint32_t generate() override;
         private:
             float generate_speed();
             float generate_direction();
@@ -149,6 +163,29 @@ namespace extensions
             std::normal_distribution<float> _size_height_dist;
         };
 
+        class Exhaust :
+                public virtual AutoMovableObject,
+                public virtual AutoDyingObject
+        {
+        public:
+            void evaluate(uint32_t time_elapsed) override;
+        };
+
+        class Rocket :
+                public virtual RadialParticleGenerator<Exhaust>,
+                public virtual Projectile,
+                public virtual core::basic::actor::Die
+        {
+        public:
+            Rocket(int32_t timeout);
+            void initialize() override;
+            void evaluate(uint32_t time_elapsed) override;
+            bool update(bool force) override;
+            void die() override;
+        protected:
+            int32_t _timer {500};
+            int32_t _timeout;
+        };
 
         // =============================================
 
@@ -254,7 +291,6 @@ namespace extensions
                         collided_sides |= find_collided_sides(object);
                     }
                 }
-                clear_collisions();
                 int collided_sides_count = std::accumulate(std::begin(collided_sides.sides),
                                                            std::end(collided_sides.sides),
                                                            0, [](int sum, bool v)
@@ -343,11 +379,11 @@ namespace extensions
         }
 
         template<class Particle>
-        void RadialParticleGenerator<Particle>::set_speed_range(int32_t from, int32_t to)
+        void RadialParticleGenerator<Particle>::set_speed_range(float from, float to)
         {
             _speed_range = {from, to};
             float average = to + (to - from) / 2.f;
-            _speed_dist = decltype(_speed_dist)(average, average/2.f);
+            _speed_dist = decltype(_speed_dist)(average, average / 2.f);
         }
 
         template<class Particle>
@@ -363,23 +399,19 @@ namespace extensions
         {
             _life_time_range = {from, to};
             float average = to + (to - from) / 2.f;
-            _life_time_dist = decltype(_life_time_dist)(average, average / 4.f);
+            _life_time_dist = decltype(_life_time_dist)(average, average);
         }
 
         template<class Particle>
-        void RadialParticleGenerator<Particle>::set_direction(float angle)
+        void RadialParticleGenerator<Particle>::set_generator_direction(float angle)
         {
             _direction = std::clamp(angle, 0.f, 360.f);
         }
 
         template<class Particle>
-        void RadialParticleGenerator<Particle>::set_direction(const ForceVector &direction)
+        void RadialParticleGenerator<Particle>::set_generator_direction(const ForceVector &direction)
         {
             auto angle = std::atan2(direction.y, direction.x);
-            if (angle < 0)
-            {
-                angle = (float) (M_PI - angle);
-            }
             _direction = helpers::math::rad2deg(angle);
         }
 
@@ -434,13 +466,13 @@ namespace extensions
         }
 
         template<class Particle>
-        void RadialParticleGenerator<Particle>::generate()
+        uint32_t RadialParticleGenerator<Particle>::generate()
         {
-            generate(position());
+            return generate(position());
         }
 
         template<class Particle>
-        void RadialParticleGenerator<Particle>::generate(const Point &position)
+        uint32_t RadialParticleGenerator<Particle>::generate(const Point &position)
         {
             if (!_drawable_generator)
             {
@@ -466,6 +498,7 @@ namespace extensions
                 object->set_direction(generate_direction());
                 object->set_speed(generate_speed());
             }
+            return amount;
         }
 
     }
