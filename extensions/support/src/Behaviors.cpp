@@ -1,5 +1,3 @@
-
-
 #include "support/Behaviors.h"
 #include "support/Utilities.h"
 
@@ -80,5 +78,16 @@ int32_t LifeTime::life_time() const
 
 void LifeTime::set_life_time(int32_t time)
 {
+    set_remaining_life_time(time);
     _life_time = time;
+}
+
+int32_t LifeTime::remaining_life_time() const
+{
+    return _remaining_life_time;
+}
+
+void LifeTime::set_remaining_life_time(int32_t time)
+{
+    _remaining_life_time = time;
 }

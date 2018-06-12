@@ -20,12 +20,13 @@ namespace helpers::math
     {
     public:
         static int generate_random_int(int lo, int hi);
+        static float generate_random_float(float lo, float hi);
         static Point generate_random_point(const Roi &roi);
         static Size generate_random_size(const Size &dim_x, const Size &dim_y);
     private:
         RandomIntGenerator() = default;
         static std::random_device _random_device;
-        static std::mt19937 _random_generator;
+        static std::minstd_rand0 _random_generator;
     };
 }
 

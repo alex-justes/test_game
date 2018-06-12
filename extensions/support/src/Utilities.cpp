@@ -4,7 +4,7 @@
 using namespace helpers::math;
 
 std::random_device RandomIntGenerator::_random_device = std::random_device();
-std::mt19937 RandomIntGenerator::_random_generator = std::mt19937(RandomIntGenerator::_random_device());
+std::minstd_rand0 RandomIntGenerator::_random_generator = std::minstd_rand0(RandomIntGenerator::_random_device());
 
 ForceVector helpers::math::normalize(const ForceVector &vector)
 {
@@ -34,8 +34,19 @@ bool helpers::math::intersects_1d(float n_left, float n_right, float m_left, flo
 int RandomIntGenerator::generate_random_int(int lo, int hi)
 {
     std::uniform_int_distribution<int> x(lo, hi);
+    return lo + std::rand() % (hi - lo);
     return x(_random_generator);
 }
+
+float RandomIntGenerator::generate_random_float(float lo, float hi)
+{
+    //float n = std::rand() / (float)RAND_MAX;
+    //float t = n * (hi - lo);
+    //return lo + n * (hi - lo);
+    std::uniform_real_distribution x(lo, hi);
+    return x(_random_device);
+}
+
 Point RandomIntGenerator::generate_random_point(const Roi &roi)
 {
     std::uniform_int_distribution<uint32_t> x(roi.top_left.x, roi.bottom_right.x);

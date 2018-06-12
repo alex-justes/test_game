@@ -82,7 +82,7 @@ void DemoLevel::initialize()
                           {_world_size.x - _wall_tile_size.x, _wall_tile_size.y});
 
     {
-        auto explosion = world_manager().create_object<extensions::complex::object::RadialParticleGenerator<AutoMovableObject>>();
+        auto explosion = world_manager().create_object<extensions::complex::object::RadialParticleGenerator<AutoDyingWallBouncer >>();
 /*                    void set_drawable_generator(std::unique_ptr<DrawableGenerator>&& generator);
             void set_direction_range(int32_t from, int32_t to);
             void set_speed_range(int32_t from, int32_t to);
@@ -90,14 +90,15 @@ void DemoLevel::initialize()
             void set_life_time_range(int32_t from, int32_t to);
             void set_size_range(const Size& from, const Size& to);*/
         auto drawable_generator = new helpers::generator::SimpleDrawableRectGenerator;
-        drawable_generator->set_fill_color({255, 0, 0, 128});
+        drawable_generator->set_fill_color({255, 0, 255, 128});
         drawable_generator->set_border_color({0, 0, 0, 128});
         explosion->set_drawable_generator(std::unique_ptr<helpers::generator::DrawableGenerator>(drawable_generator));
-        explosion->set_direction_range(1, 360);
-        explosion->set_speed_range(600, 1200);
-        explosion->set_particle_count_range(100, 200);
-        explosion->set_life_time_range(2500, 4000);
-        explosion->set_size_range({10, 20}, {10, 20});
+        explosion->set_direction_range(30);
+        explosion->set_direction(90);
+        explosion->set_speed_range(700, 1800);
+        explosion->set_particle_count_range(20, 30);
+        explosion->set_life_time_range(800, 1200);
+        explosion->set_size_range({5, 10}, {5, 10});
         explosion->set_position(_world_size/2);
         _particle_generator = explosion;
     }

@@ -43,8 +43,8 @@ namespace extensions
                 public virtual core::basic::object::UpdatableObject,
                 public virtual extensions::basic::object::RenderableObjectExt,
                 public virtual extensions::basic::behavior::Velocity,
-                public core::basic::actor::Evaluate,
-                public extensions::basic::actor::Move
+                public virtual core::basic::actor::Evaluate,
+                public virtual extensions::basic::actor::Move
         {
         public:
             void evaluate(uint32_t time_elapsed) override;
@@ -54,10 +54,17 @@ namespace extensions
             ForceVector _offset{0, 0};
         };
 
+        class Projectile :
+                public virtual AutoMovableObject,
+                public virtual core::basic::object::CollidableObject
+        {
+
+        };
+
         class AutoDyingObject :
                 public virtual core::basic::object::Object,
                 public virtual extensions::basic::behavior::LifeTime,
-                public core::basic::actor::Evaluate
+                public virtual core::basic::actor::Evaluate
         {
         public:
             void evaluate(uint32_t time_elapsed) override;
@@ -84,19 +91,18 @@ namespace extensions
 
         class AutoDyingWallBouncer :
                 public virtual WallBouncer,
-                public virtual AutoDyingObject
+                public virtual AutoDyingObject,
+                public virtual core::basic::actor::Evaluate
         {
         public:
             void evaluate(uint32_t time_elapsed) override;
         };
 
-        // TODO: type traits
-        // T should be AutoMovable
-
         class ParticleGenerator
         {
         public:
             virtual void generate() = 0;
+            virtual void generate(const Point &position) = 0;
         };
 
         template<class Particle>
@@ -109,20 +115,38 @@ namespace extensions
             using DrawableGenerator = helpers::generator::DrawableGenerator;
             RadialParticleGenerator();
             constexpr static bool check_traits();
-            void set_drawable_generator(std::unique_ptr<DrawableGenerator>&& generator);
-            void set_direction_range(int32_t from, int32_t to);
+            void set_drawable_generator(std::unique_ptr<DrawableGenerator> &&generator);
+            void set_direction_range(float angle);
             void set_speed_range(int32_t from, int32_t to);
             void set_particle_count_range(int32_t from, int32_t to);
             void set_life_time_range(int32_t from, int32_t to);
-            void set_size_range(const Size& from, const Size& to);
+            void set_size_range(const Size &width, const Size &height);
+            void set_direction(float angle);
+            void set_direction(const ForceVector &direction);
+
+            void generate(const Point &position) override;
             void generate() override;
         private:
-            PointI32 _direction{0, 0};
-            PointI32 _speed{0, 0};
-            PointI32 _particles{0, 0};
-            PointI32 _life_time{0 ,0};
-            Size _size_lo{0, 0}, _size_hi{0, 0};
+            float generate_speed();
+            float generate_direction();
+            uint32_t generate_lifetime();
+            uint32_t generate_amount();
+            Size generate_size();
+
+            float _direction{0};
+            ForceVector _direction_range{0, 0};
+            ForceVector _speed_range{0, 0};
+            PointI32 _amount_range{0, 0};
+            PointI32 _life_time_range{0, 0};
+            Size _size_width_range{0, 0}, _size_height_range{0, 0};
             std::unique_ptr<DrawableGenerator> _drawable_generator;
+            std::mt19937 _random_generator;
+            std::normal_distribution<float> _life_time_dist;
+            std::uniform_real_distribution<float> _direction_dist;
+            std::normal_distribution<float> _speed_dist;
+            std::normal_distribution<float> _amount_dist;
+            std::normal_distribution<float> _size_width_dist;
+            std::normal_distribution<float> _size_height_dist;
         };
 
 
@@ -223,7 +247,7 @@ namespace extensions
                         collided_with_T = true;
                         if (!good_position_known())
                         {
-                            LOG_W("Mr. Anderson had no place in matrix... So... CS.... ")
+                            LOG_D("Mr. Anderson had no place in matrix... So... CS.... ")
                             set_dead();
                             break;
                         }
@@ -293,14 +317,15 @@ namespace extensions
         template<class Particle>
         constexpr bool RadialParticleGenerator<Particle>::check_traits()
         {
-            return true;
-            //return std::is_base_of_v<AutoDyingObject, Particle> && std::is_base_of_v<AutoMovableObject, Particle>;
+            return std::is_base_of_v<AutoMovableObject, Particle>;
         }
 
         template<class Particle>
         RadialParticleGenerator<Particle>::RadialParticleGenerator()
         {
             static_assert(check_traits());
+            std::random_device device;
+            _random_generator = std::mt19937(device());
         }
 
         template<class Particle>
@@ -311,58 +336,135 @@ namespace extensions
         }
 
         template<class Particle>
-        void RadialParticleGenerator<Particle>::set_direction_range(int32_t from, int32_t to)
+        void RadialParticleGenerator<Particle>::set_direction_range(float angle)
         {
-            _direction = {from, to};
+            _direction_range = {0.f, angle};
+            _direction_dist = decltype(_direction_dist)(0, angle);
         }
 
         template<class Particle>
         void RadialParticleGenerator<Particle>::set_speed_range(int32_t from, int32_t to)
         {
-            _speed = {from, to};
+            _speed_range = {from, to};
+            float average = to + (to - from) / 2.f;
+            _speed_dist = decltype(_speed_dist)(average, average/2.f);
         }
 
         template<class Particle>
         void RadialParticleGenerator<Particle>::set_particle_count_range(int32_t from, int32_t to)
         {
-            _particles = {from, to};
+            _amount_range = {from, to};
+            float average = to + (to - from) / 2.f;
+            _amount_dist = decltype(_amount_dist)(average, average / 4.f);
         }
 
         template<class Particle>
         void RadialParticleGenerator<Particle>::set_life_time_range(int32_t from, int32_t to)
         {
-            _life_time = {from, to};
+            _life_time_range = {from, to};
+            float average = to + (to - from) / 2.f;
+            _life_time_dist = decltype(_life_time_dist)(average, average / 4.f);
         }
 
         template<class Particle>
-        void RadialParticleGenerator<Particle>::set_size_range(const Size &from, const Size &to)
+        void RadialParticleGenerator<Particle>::set_direction(float angle)
         {
-            _size_lo = from;
-            _size_hi = to;
+            _direction = std::clamp(angle, 0.f, 360.f);
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_direction(const ForceVector &direction)
+        {
+            auto angle = std::atan2(direction.y, direction.x);
+            if (angle < 0)
+            {
+                angle = (float) (M_PI - angle);
+            }
+            _direction = helpers::math::rad2deg(angle);
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::set_size_range(const Size &width, const Size &height)
+        {
+            _size_width_range = width;
+            _size_height_range = height;
+            float average_width = width.x + (width.y - width.x) / 2.f;
+            float average_height = height.x + (height.y - height.x) / 2.f;
+            _size_width_dist = decltype(_size_width_dist)(average_width, average_width / 6.f);
+            _size_height_dist = decltype(_size_height_dist)(average_height, average_height / 6.f);
+        }
+
+        template<class Particle>
+        float RadialParticleGenerator<Particle>::generate_speed()
+        {
+            return std::clamp(_speed_dist(_random_generator), _speed_range.x, _speed_range.y);
+        }
+
+        template<class Particle>
+        float RadialParticleGenerator<Particle>::generate_direction()
+        {
+            float angle = std::clamp(_direction_dist(_random_generator), _direction_range.x, _direction_range.y);
+            float average = (_direction_range.y - _direction_range.x) / 2.f;
+            return _direction + angle - average;
+        }
+
+        template<class Particle>
+        uint32_t RadialParticleGenerator<Particle>::generate_lifetime()
+        {
+            return std::clamp((uint32_t) (_life_time_dist(_random_generator)), (uint32_t) _life_time_range.x,
+                              (uint32_t) _life_time_range.y);
+        }
+
+        template<class Particle>
+        uint32_t RadialParticleGenerator<Particle>::generate_amount()
+        {
+            return std::clamp((uint32_t) (_amount_dist(_random_generator)), (uint32_t) _amount_range.x,
+                              (uint32_t) _amount_range.y);
+        }
+
+        template<class Particle>
+        Size RadialParticleGenerator<Particle>::generate_size()
+        {
+            return {
+                    std::clamp((uint32_t) (_size_width_dist(_random_generator)), _size_width_range.x,
+                               _size_width_range.y),
+                    std::clamp((uint32_t) (_size_height_dist(_random_generator)), _size_height_range.x,
+                               _size_height_range.y)
+            };
         }
 
         template<class Particle>
         void RadialParticleGenerator<Particle>::generate()
         {
+            generate(position());
+        }
+
+        template<class Particle>
+        void RadialParticleGenerator<Particle>::generate(const Point &position)
+        {
             if (!_drawable_generator)
             {
                 LOG_E("No drawable generator")
             }
-            auto amount = helpers::math::RandomIntGenerator::generate_random_int(_particles.x, _particles.y);
-            for (int i = 0; i < amount; ++i)
+            auto amount = generate_amount();
+
+            for (uint32_t i = 0; i < amount; ++i)
             {
                 auto object = world_manager()->create_object<Particle>();
-                auto size = helpers::math::RandomIntGenerator::generate_random_size(_size_lo, _size_hi);
+                auto size = generate_size();
                 auto drawable = _drawable_generator->generate(size);
                 object->set_drawable(std::move(drawable));
-                //object->set_life_time(helpers::math::RandomIntGenerator::generate_random_int(_life_time.x, _life_time.y));
-                object->set_position(position());
+                if constexpr (std::is_base_of_v<AutoDyingObject, Particle>)
+                {
+                    object->set_life_time(generate_lifetime());
+                }
+                object->set_position(position);
                 if constexpr (std::is_base_of_v<core::basic::object::CollidableObject, Particle>)
                 {
                     object->set_collision_size(size);
                 }
-                object->set_direction(helpers::math::RandomIntGenerator::generate_random_int(_direction.x, _direction.y));
-                object->set_speed(helpers::math::RandomIntGenerator::generate_random_int(_speed.x, _speed.y));
+                object->set_direction(generate_direction());
+                object->set_speed(generate_speed());
             }
         }
 

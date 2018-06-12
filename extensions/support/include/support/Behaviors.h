@@ -30,9 +30,12 @@ namespace extensions::basic::behavior
     {
     public:
         int32_t life_time() const;
+        int32_t remaining_life_time() const;
         void set_life_time(int32_t time);
+        void set_remaining_life_time(int32_t time);
     private:
         int32_t _life_time;
+        int32_t _remaining_life_time;
     };
 }
 

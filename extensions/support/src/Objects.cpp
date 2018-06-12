@@ -60,14 +60,24 @@ void AutoMovableObject::move(uint32_t time)
 
 void AutoDyingObject::evaluate(uint32_t time_elapsed)
 {
-    auto remaining_life_time = life_time() - (uint32_t)(time_elapsed);
-    if (remaining_life_time < 0)
+    auto remaining_time = remaining_life_time() - (int32_t)(time_elapsed);
+    if (remaining_time < 0)
     {
         set_dead();
     }
     else
     {
-        set_life_time(remaining_life_time);
+        set_remaining_life_time(remaining_time);
+        auto renderable = dynamic_cast<core::basic::object::RenderableObject*>(this);
+        if (renderable != nullptr)
+        {
+            auto drawable_with_fade = dynamic_cast<core::basic::actor::Fade*>(renderable->get_drawable());
+            if (drawable_with_fade != nullptr)
+            {
+                float percent = 1.f - 1.f / (life_time() * remaining_life_time());
+                drawable_with_fade->fade(percent);
+            }
+        }
     }
 }
 void AutoDyingWallBouncer::evaluate(uint32_t time_elapsed)
