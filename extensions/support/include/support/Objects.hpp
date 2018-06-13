@@ -60,6 +60,17 @@ namespace extensions
             ForceVector _offset{0, 0};
         };
 
+        class Hero :
+                public virtual AutoMovableObject,
+                public virtual extensions::basic::object::CollidableObjectExt,
+                public virtual extensions::complex::behavior::GoodPosition
+        {
+        public:
+            void initialize() override;
+            void evaluate(uint32_t time_elapsed) override;
+            bool update(bool force) override;
+        };
+
         class Projectile :
                 public virtual AutoMovableObject,
                 public virtual extensions::basic::object::CollidableObjectExt
@@ -183,7 +194,7 @@ namespace extensions
             bool update(bool force) override;
             void die() override;
         protected:
-            int32_t _timer {500};
+            int32_t _timer{500};
             int32_t _timeout;
         };
 

@@ -34,8 +34,6 @@ void DemoLevel::create_invisible_wall(const Size &size,
 
 void DemoLevel::initialize()
 {
-    subscribe(core::EventType::KeyPress);
-    subscribe(core::EventType::MouseClick);
     set_finished(false);
     Size screen_size = screen_manager().screen_size();
     LOG_D("Started DemoLevel on %dx%d screen.", screen_size.x, screen_size.y)
@@ -43,7 +41,7 @@ void DemoLevel::initialize()
     world_manager().set_world_size(screen_size);
     _world_size = world_manager().world_size();
     _camera = world_manager().create_camera({0, 0}, screen_size);
-    _screen_id = screen_manager().create_screen({{0,             0},
+    _screen_id = screen_manager().create_screen({{0,             4},
                                                  {screen_size.x, screen_size.y}}, 0);
 
     screen_manager().attach_camera(_camera, _screen_id);
@@ -101,29 +99,6 @@ void DemoLevel::initialize()
 
     _villain_spawner = spawner;
 
-    //create_invisible_wall({30, 30}, _spawn_positions[0]);
-    //create_invisible_wall({30, 30}, _spawn_positions[1]);
-
-/*    {
-        auto explosion = world_manager().create_object<extensions::complex::object::RadialParticleGenerator<extensions::complex::object::Projectile>>();
-//        auto explosion = world_manager().create_object<extensions::complex::object::RadialParticleGenerator<AutoDyingWallBouncer >>();
-        auto drawable_generator = new helpers::generator::SimpleDrawableRectGenerator;
-        drawable_generator->set_fill_color({255, 0, 255, 128});
-        drawable_generator->set_border_color({0, 0, 0, 128});
-        explosion->set_drawable_generator(std::unique_ptr<helpers::generator::DrawableGenerator>(drawable_generator));
-
-
-        explosion->set_direction_range(30);
-        explosion->set_generator_direction(90);
-        explosion->set_speed_range(700, 1800);
-        explosion->set_particle_count_range(40, 60);
-        explosion->set_size_range({5, 10}, {5, 10});
-
-        explosion->set_life_time_range(800, 1200);
-        explosion->set_position(_world_size / 2);
-        _particle_generator = explosion;
-    }*/
-
 }
 
 
@@ -153,27 +128,6 @@ void DemoLevel::evaluate(uint32_t time_elapsed)
     }
 }
 
-void DemoLevel::process_event(const core::Event *event)
-{
-    auto keyboard_event = dynamic_cast<const core::KeyPressEvent *>(event);
-    if (keyboard_event != nullptr)
-    {
-        if (keyboard_event->state() == core::KeyPressEvent::State::PRESSED)
-        {
-            switch (keyboard_event->sym())
-            {
-                case SDLK_SPACE:
-                    _spawn_key_pressed = true;
-                    break;
-                case SDLK_q:
-                    set_finished(true);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}
 
 std::atomic_int DemoVillain::_amount = 0;
 
@@ -229,3 +183,4 @@ void DemoVillain::evaluate(uint32_t time_elapsed)
         AutoDyingWallBouncer::evaluate(time_elapsed);
     }
 }
+

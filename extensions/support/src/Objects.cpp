@@ -197,3 +197,45 @@ void Exhaust::evaluate(uint32_t time_elapsed)
     AutoDyingObject::evaluate(time_elapsed);
     AutoMovableObject::evaluate(time_elapsed);
 }
+
+void Hero::initialize()
+{
+    RenderableObjectExt::initialize();
+    CollidableObjectExt::initialize();
+}
+
+bool Hero::update(bool force)
+{
+    if (force || changed())
+    {
+        AutoMovableObject::update(true);
+        set_collision_shape({position(), position() + collision_size()});
+        return true;
+    }
+    return false;
+}
+
+void Hero::evaluate(uint32_t time_elapsed)
+{
+    bool collided_with_walls = false;
+    if (!collisions().empty())
+    {
+        for (const auto& object: collisions())
+        {
+            if (dynamic_cast<const Wall *>(object))
+            {
+                collided_with_walls = true;
+                break;
+            }
+        }
+    }
+    if (collided_with_walls)
+    {
+        set_position(good_position());
+    }
+    else
+    {
+        save_good_position();
+        AutoMovableObject::evaluate(time_elapsed);
+    }
+}

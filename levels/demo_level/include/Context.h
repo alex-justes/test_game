@@ -31,7 +31,6 @@ public:
     DemoLevel(core::EventManager &event_manager, core::ScreenManager &screen_manager);
     void initialize() override;
     void evaluate(uint32_t time_elapsed) override;
-    void process_event(const core::Event *event) override;
 private:
     void create_tile(const RGBA &fill_color,
                      const RGBA &border_color,
